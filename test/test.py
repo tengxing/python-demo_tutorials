@@ -1,12 +1,9 @@
-#!/usr/bin/python3
-# Filename: test.py
- 
-import support
-s = 'Hello, Runoob'
-str(s)
-repr(s) 
-a=input("input:")
-print("output:"+a)
+#!/usr/bin/python
+import tensorflow as tf
+hello = tf.constant('Hello, TensorFlow!')
+sess = tf.Session()
+print (sess.run(hello))
 
-
-support.print_func("Runoob")
+a = tf.constant(10)
+b = tf.constant(32)
+print (sess.run(a+b))

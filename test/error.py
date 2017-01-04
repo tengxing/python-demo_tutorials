@@ -1,3 +1,4 @@
+#setencoding=utf-8
 #!/usr/bin/python
 def divide(x, y):
         try:
