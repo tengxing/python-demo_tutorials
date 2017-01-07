@@ -42,7 +42,7 @@ init = tf.global_variables_initializer()
 sess = tf.Session()
 sess.run(init)
 
-for i in range(5000):
+for i in range(1000):
     # training
     sess.run(train_step, feed_dict={xs: x_data, ys: y_data})
     if i % 50 == 0:
