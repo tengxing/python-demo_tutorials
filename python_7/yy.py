@@ -45,7 +45,8 @@ def read_and_decode(filename):
 
 if __name__ == '__main__':
     img, label = read_and_decode("train.tfrecords")
-
+    print label
+    #使用shuffle_batch可以随机打乱输入 next_batch挨着往下取
     img_batch, label_batch = tf.train.shuffle_batch([img, label],
                                                     batch_size=30, capacity=2000,
                                                     min_after_dequeue=1000)

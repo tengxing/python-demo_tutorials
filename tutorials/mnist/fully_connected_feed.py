@@ -49,7 +49,7 @@ def placeholder_inputs(batch_size):
   """
   # Note that the shapes of the placeholders match the shapes of the full
   # image and label tensors, except the first dimension is now batch_size
-  # rather than the full size of the train or test data sets.
+  # rather than the full size of the train or python_base data sets.
   images_placeholder = tf.placeholder(tf.float32, shape=(batch_size,
                                                          mnist.IMAGE_PIXELS))
   labels_placeholder = tf.placeholder(tf.int32, shape=(batch_size))
@@ -116,7 +116,7 @@ def do_eval(sess,
 def run_training():
   """Train MNIST for a number of steps."""
   # Get the sets of images and labels for training, validation, and
-  # test on MNIST.
+  # python_base on MNIST.
   data_sets = input_data.read_data_sets(FLAGS.input_data_dir, FLAGS.fake_data)
 
   # Tell TensorFlow that the model will be built into the default Graph.
@@ -206,7 +206,7 @@ def run_training():
                 images_placeholder,
                 labels_placeholder,
                 data_sets.validation)
-        # Evaluate against the test set.
+        # Evaluate against the python_base set.
         print('Test Data Eval:')
         do_eval(sess,
                 eval_correct,

@@ -33,7 +33,7 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "test_data",
     "",
-    "Path to the test data.")
+    "Path to the python_base data.")
 flags.DEFINE_string(
     "predict_data",
     "",
@@ -46,7 +46,7 @@ LEARNING_RATE = 0.001
 
 
 def maybe_download():
-  """Maybe downloads training data and returns train and test file names."""
+  """Maybe downloads training data and returns train and python_base file names."""
   if FLAGS.train_data:
     train_file_name = FLAGS.train_data
   else:

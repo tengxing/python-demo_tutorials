@@ -138,11 +138,11 @@ def train():
   # Merge all the summaries and write them out to /tmp/mnist_logs (by default)
   merged = tf.summary.merge_all()
   train_writer = tf.summary.FileWriter(FLAGS.log_dir + '/train', sess.graph)
-  test_writer = tf.summary.FileWriter(FLAGS.log_dir + '/test')
+  test_writer = tf.summary.FileWriter(FLAGS.log_dir + '/python_base')
   tf.global_variables_initializer().run()
 
   # Train the model, and also write summaries.
-  # Every 10th step, measure test-set accuracy, and write test summaries
+  # Every 10th step, measure python_base-set accuracy, and write python_base summaries
   # All other steps, run train_step on training data, & add training summaries
 
   def feed_dict(train):
@@ -156,7 +156,7 @@ def train():
     return {x: xs, y_: ys, keep_prob: k}
 
   for i in range(FLAGS.max_steps):
-    if i % 10 == 0:  # Record summaries and test-set accuracy
+    if i % 10 == 0:  # Record summaries and python_base-set accuracy
       summary, acc = sess.run([merged, accuracy], feed_dict=feed_dict(False))
       test_writer.add_summary(summary, i)
       print('Accuracy at step %s: %s' % (i, acc))
