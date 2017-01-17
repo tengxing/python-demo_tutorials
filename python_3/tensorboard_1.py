@@ -22,7 +22,6 @@ def add_layer(inputs, in_size, out_size, n_layer, activation_function=None):
         tf.histogram_summary(layer_name + '/outputs', outputs)
         return outputs
 
-
 # Make up some real data
 x_data = np.linspace(-1, 1, 300)[:, np.newaxis]
 noise = np.random.normal(0, 0.05, x_data.shape)
