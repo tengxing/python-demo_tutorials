@@ -121,7 +121,7 @@ with graph.as_default():
     # Fully connected layer.
     # Generates logits of size [None, 62]
     #传入图片[]对应62个神经层的概率
-    logits = tf.contrib.layers.fully_connected(images_flat, 5, tf.nn.relu)
+    logits = tf.contrib.layers.fully_connected(images_flat, 62, tf.nn.relu)
 
     # Convert logits to label indexes (int).
     # Shape [None], which is a 1D vector of length == batch_size.
@@ -161,7 +161,7 @@ for i in range(500):
 
 ###test###
 # Pick 10 random images
-sample_indexes = random.sample(range(len(images32)), 10)
+sample_indexes = random.sample(range(len(images32)), 20)
 sample_images = [images32[i] for i in sample_indexes]
 sample_labels = [labels[i] for i in sample_indexes]
 
@@ -178,32 +178,3 @@ for i in range(len(sample_labels)):
         right=right+1
 #正确率
 print ("训练所得正确率：{0}").format(right/len(sample_labels))
-match_count = sum([int(y == y_) for y, y_ in zip(sample_labels, predicted)])
-accuracy = match_count / len(sample_labels)
-print len(sample_labels)
-print match_count
-print("Accuracy: {:.3f}".format(accuracy))
-
-
-# Load the test dataset.
-test_images, test_labels = load_data(test_data_dir)
-
-# Transform the images, just like we did with the training set.
-test_images32 = [skimage.transform.resize(image, (32, 32))
-                 for image in test_images]
-#display_images_and_labels(test_images32, test_labels)
-
-# Run predictions against the full test set.
-predicted = session.run([predicted_labels],
-                        feed_dict={images_ph: test_images32})[0]
-# Calculate how many matches we got.
-match_count = sum([int(y == y_) for y, y_ in zip(test_labels, predicted)])
-accuracy = match_count / len(test_labels)
-print len(set(test_labels))
-print match_count
-print("Accuracy: {:.3f}".format(accuracy))
-
-
-# Close the session. This will destroy the trained model.
-session.close()
-
