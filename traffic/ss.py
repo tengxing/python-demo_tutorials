@@ -1,4 +1,6 @@
-#encoding = UTF-8
+# coding=UTF-8
+from __future__ import division
+from compiler.ast import flatten
 import os
 import random
 import skimage.data
@@ -29,6 +31,7 @@ def load_data(data_dir):
     labels = []
     images = []
     for d in directories:
+        #得到分类目录：datasets/BelgiumTS/Training/00032
         label_dir = os.path.join(data_dir, d)
         file_names = [os.path.join(label_dir, f)
                       for f in os.listdir(label_dir) if f.endswith(".ppm")]
@@ -37,13 +40,14 @@ def load_data(data_dir):
         for f in file_names:
             images.append(skimage.data.imread(f))
             labels.append(int(d))
+        print labels
     return images, labels
 
 
 # Load training and testing datasets.
-ROOT_PATH = "/traffic"
-train_data_dir = os.path.join(ROOT_PATH, "datasets/BelgiumTS/Training")
-test_data_dir = os.path.join(ROOT_PATH, "datasets/BelgiumTS/Testing")
+ROOT_PATH = "datasets"
+train_data_dir = os.path.join(ROOT_PATH, "BelgiumTS/Training")
+test_data_dir = os.path.join(ROOT_PATH, "BelgiumTS/Testing")
 
 images, labels = load_data(train_data_dir)
 
@@ -57,6 +61,7 @@ def display_images_and_labels(images, labels):
     i = 1
     for label in unique_labels:
         # Pick the first image for each label.
+        print label
         image = images[labels.index(label)]
         plt.subplot(8, 8, i)  # A grid of 8 rows x 8 columns
         plt.axis('off')
@@ -65,7 +70,7 @@ def display_images_and_labels(images, labels):
         _ = plt.imshow(image)
     plt.show()
 
-display_images_and_labels(images, labels)
+#display_images_and_labels(images, labels)
 
 def display_label_images(images, label):
     """Display images of a specific label."""
@@ -82,7 +87,7 @@ def display_label_images(images, label):
         plt.imshow(image)
     plt.show()
 
-display_label_images(images, 32)
+#display_label_images(images, 32)
 
 for image in images[:5]:
     print("shape: {0}, min: {1}, max: {2}".format(image.shape, image.min(), image.max()))
@@ -90,16 +95,17 @@ for image in images[:5]:
 # Resize images
 images32 = [skimage.transform.resize(image, (32, 32))
                 for image in images]
-display_images_and_labels(images32, labels)
+#display_images_and_labels(images32, labels)
 
 for image in images32[:5]:
     print("shape: {0}, min: {1}, max: {2}".format(image.shape, image.min(), image.max()))
-
 
 labels_a = np.array(labels)
 images_a = np.array(images32)
 print("labels: ", labels_a.shape, "\nimages: ", images_a.shape)
 
+
+###create model###
 # Create a graph to hold the model.
 graph = tf.Graph()
 
@@ -115,10 +121,12 @@ with graph.as_default():
 
     # Fully connected layer.
     # Generates logits of size [None, 62]
+    #传入图片[]对应62个神经层的概率
     logits = tf.contrib.layers.fully_connected(images_flat, 62, tf.nn.relu)
 
     # Convert logits to label indexes (int).
     # Shape [None], which is a 1D vector of length == batch_size.
+    # 传入图片[]对应62个神经层的概率最大的
     predicted_labels = tf.argmax(logits, 1)
 
     # Define the loss function.
@@ -126,7 +134,7 @@ with graph.as_default():
     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits, labels_ph))
 
     # Create training op.
-    train = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
+    train = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
 
     # And, finally, an initialization op to execute before training.
     # TODO: rename to tf.global_variables_initializer() on TF 0.12.
@@ -137,6 +145,8 @@ print("logits: ", logits)
 print("loss: ", loss)
 print("predicted_labels: ", predicted_labels)
 
+
+###train###
 # Create a session to run the graph we created.
 session = tf.Session(graph=graph)
 
@@ -144,12 +154,13 @@ session = tf.Session(graph=graph)
 # We don't care about the return value, though. It's None.
 _ = session.run([init])
 
-for i in range(201):
+for i in range(500):
     _, loss_value = session.run([train, loss],
-                                feed_dict={images_ph: images_a, labels_ph: labels_a})
+        feed_dict={images_ph: images_a, labels_ph: labels_a})
     if i % 10 == 0:
         print("Loss: ", loss_value)
 
+###test###
 # Pick 10 random images
 sample_indexes = random.sample(range(len(images32)), 10)
 sample_images = [images32[i] for i in sample_indexes]
@@ -158,36 +169,13 @@ sample_labels = [labels[i] for i in sample_indexes]
 # Run the "predicted_labels" op.
 predicted = session.run([predicted_labels],
                         feed_dict={images_ph: sample_images})[0]
-print(sample_labels)
-print(predicted)
+print("标签值：{0}".format(sample_labels))
+print "预测值：{0}".format(flatten(predicted))
 
-# Display the predictions and the ground truth visually.
-fig = plt.figure(figsize=(10, 10))
-for i in range(len(sample_images)):
-    truth = sample_labels[i]
-    prediction = predicted[i]
-    plt.subplot(5, 2,1+i)
-    plt.axis('off')
-    color='green' if truth == prediction else 'red'
-    plt.text(40, 10, "Truth:        {0}\nPrediction: {1}".format(truth, prediction),
-             fontsize=12, color=color)
-    plt.imshow(sample_images[i])
-
-# Load the test dataset.
-test_images, test_labels = load_data(test_data_dir)
-
-# Transform the images, just like we did with the training set.
-test_images32 = [skimage.transform.resize(image, (32, 32))
-                 for image in test_images]
-display_images_and_labels(test_images32, test_labels)
-
-# Run predictions against the full test set.
-predicted = session.run([predicted_labels],
-                        feed_dict={images_ph: test_images32})[0]
-# Calculate how many matches we got.
-match_count = sum([int(y == y_) for y, y_ in zip(test_labels, predicted)])
-accuracy = match_count / len(test_labels)
-print("Accuracy: {:.3f}".format(accuracy))
-
-# Close the session. This will destroy the trained model.
-session.close()
+right = 0
+for i in range(len(sample_labels)):
+    result =  sample_labels[i]-predicted[i]
+    if(result == 0):
+        right=right+1
+#正确率
+print ("训练所得正确率：{0}").format(right/len(sample_labels))
